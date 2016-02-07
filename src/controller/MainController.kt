@@ -64,7 +64,7 @@ class MainController {
 
                 println("Parse json data")
                 var users = Gson().fromJson<Array<User>>(
-                        InputStreamReader(javaClass.getResourceAsStream("/resources/dataFeb-7-2016.json")),
+                        InputStreamReader(javaClass.getResourceAsStream("/resources/data-1000.json")),
                         Array<User>::class.java)
 
                 println("Available ${users.count()} users, generate ${usersCount.get()}")
