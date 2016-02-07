@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="-Infinity"
+      prefHeight="400.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="controller.MainController">
+    <children>
+        <ProgressBar fx:id="progressBar" maxWidth="1.7976931348623157E308" prefWidth="200.0"/>
+        <GridPane fx:id="contentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                  minHeight="400.0" minWidth="700.0" prefHeight="400.0" prefWidth="700.0" VBox.vgrow="ALWAYS">
+            <columnConstraints>
+                <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" maxWidth="300.0" minWidth="220.0"
+                                   prefWidth="220.0"/>
+                <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="400.0"
+                                   prefWidth="400.0"/>
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints maxHeight="48.0" minHeight="48.0" prefHeight="48.0" vgrow="SOMETIMES"/>
+                <RowConstraints maxHeight="48.0" minHeight="48.0" prefHeight="48.0" valignment="CENTER"
+                                vgrow="SOMETIMES"/>
+                <RowConstraints maxHeight="48.0" minHeight="48.0" prefHeight="48.0" vgrow="SOMETIMES"/>
+                <RowConstraints maxHeight="48.0" minHeight="48.0" prefHeight="48.0" vgrow="SOMETIMES"/>
+                <RowConstraints maxHeight="1.7976931348623157E308" prefHeight="200.0" valignment="TOP" vgrow="ALWAYS"/>
+                <RowConstraints maxHeight="50.0" minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES"/>
+            </rowConstraints>
+            <children>
+                <Label text="JDBC URL:"/>
+                <TextField fx:id="jdbcField" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="406.0"
+                           GridPane.columnIndex="1">
+                    <GridPane.margin>
+                        <Insets left="10.0" right="10.0"/>
+                    </GridPane.margin>
+                </TextField>
+                <Button mnemonicParsing="false" onAction="#onGenerate" text="Generate" GridPane.columnIndex="1"
+                        GridPane.rowIndex="5">
+                    <GridPane.margin>
+                        <Insets right="10.0"/>
+                    </GridPane.margin>
+                </Button>
+                <Label text="NaikSoftware (c) 2016" GridPane.rowIndex="5">
+                    <GridPane.margin>
+                        <Insets right="10.0"/>
+                    </GridPane.margin>
+                </Label>
+                <Label text="Users count:" GridPane.rowIndex="1">
+                    <GridPane.margin>
+                        <Insets right="10.0"/>
+                    </GridPane.margin>
+                </Label>
+                <TextField fx:id="usersField" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                    <GridPane.margin>
+                        <Insets left="10.0" right="10.0"/>
+                    </GridPane.margin>
+                </TextField>
+                <Label text="Friendships (max users*users):" GridPane.rowIndex="3">
+                    <GridPane.margin>
+                        <Insets right="10.0"/>
+                    </GridPane.margin>
+                </Label>
+                <TextField fx:id="friendshipsField" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                    <GridPane.margin>
+                        <Insets left="10.0" right="10.0"/>
+                    </GridPane.margin>
+                </TextField>
+                <Label text="Users password (hashed):" GridPane.rowIndex="2">
+                    <GridPane.margin>
+                        <Insets right="10.0"/>
+                    </GridPane.margin>
+                </Label>
+                <TextField fx:id="usersPassField" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                    <GridPane.margin>
+                        <Insets left="10.0" right="10.0"/>
+                    </GridPane.margin>
+                </TextField>
+            </children>
+        </GridPane>
+    </children>
+</VBox>
