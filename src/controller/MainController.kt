@@ -97,21 +97,24 @@ class MainController {
                 val friends = HashSet<Pair<Int, Int>>()
                 var i = 0
 
-                loop@ while(friendships > 0 && i <= container.count()) {
+                while(friendships > 0 && i <= container.count()) {
                     i++
                     val index = container[i];
                     val friendOne = users[index]
                     var j = 0
-                    val maxFriends = random.nextInt(friendships / 3)
+                    val maxFriends = friendships / 5 + random.nextInt(friendships / 3)
                     val perOneFriends: Int = if (maxFriends > friendships) friendships else maxFriends
                     println("Create $perOneFriends friends for ${friendOne.name}")
 
-                    while (j < perOneFriends && j < container.count()) {
+                    loop@ while (j < perOneFriends && j < container.count()) {
                         val otherIndex = getOtherId(index)
                         val friendSecond = users[otherIndex]
                         if (outRequests.contains(Pair(index, otherIndex))
                                 || outRequests.contains(Pair(otherIndex, index))
-                                || friends.contains(Pair(index, otherIndex))) continue@loop
+                                || friends.contains(Pair(index, otherIndex))) {
+                            println("Skip $otherIndex")
+                            continue@loop
+                        }
 
 
                         val fromUserId = readUserId(stmtUserId, friendOne)
