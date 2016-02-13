@@ -1,6 +1,7 @@
 package controller
 
 import com.google.gson.Gson
+import javafx.application.Platform
 import javafx.beans.property.IntegerProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
@@ -97,9 +98,8 @@ class MainController {
                 val friends = HashSet<Pair<Int, Int>>()
                 var i = 0
 
-                while(friendships > 0 && i <= container.count()) {
-                    i++
-                    val index = container[i];
+                while(friendships > 0 && i < container.count()) {
+                    val index = container[i++];
                     val friendOne = users[index]
                     var j = 0
                     val maxFriends = friendships / 5 + random.nextInt(friendships / 3)
@@ -113,6 +113,7 @@ class MainController {
                                 || outRequests.contains(Pair(otherIndex, index))
                                 || friends.contains(Pair(index, otherIndex))) {
                             println("Skip $otherIndex")
+                            j++
                             continue@loop
                         }
 
@@ -130,7 +131,11 @@ class MainController {
                             } else -> { // Make friends
 
                                 saveFriend(stmtFriends, friendOne, "FRIEND", fromUserId, toUserId)
+                                friends.add(Pair(index, otherIndex))
+
                                 saveFriend(stmtFriends, friendSecond, "FRIEND", toUserId, fromUserId)
+                                friends.add(Pair(otherIndex, index))
+
                                 friendships -= 2
                                 j += 2
                             }
@@ -138,7 +143,14 @@ class MainController {
                         println("Generated friends for user ${friendOne.name}")
                     }
                 }
-                println("Friends generated, not generated $friendships")
+
+                Platform.runLater {
+                    Alert(Alert.AlertType.INFORMATION,
+                            """Finished:
+                            ${usersCount.get()} users created;
+                            ${friendshipsCount.get() - friendships} friendships created.""",
+                            ButtonType.OK).show()
+                }
 
                 connection.close()
             } catch (e: Exception) {
