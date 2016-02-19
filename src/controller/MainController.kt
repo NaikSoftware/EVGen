@@ -36,24 +36,39 @@ class MainController {
     @FXML lateinit var friendshipsField: TextField
     @FXML lateinit var progressBar: ProgressBar
 
+    @FXML lateinit var eventsCountField: TextField
+    @FXML lateinit var eventsOwnerField: TextField
+
     val jdbcUrl: StringProperty = SimpleStringProperty("mysql://localhost:3306/database?user=root&password=1234")
     var usersCount: IntegerProperty = SimpleIntegerProperty(1)
     var usersPass: StringProperty = SimpleStringProperty()
     var friendshipsCount: IntegerProperty = SimpleIntegerProperty(0)
+    var eventsCount: IntegerProperty = SimpleIntegerProperty(0)
+    var eventsOwnerId: IntegerProperty = SimpleIntegerProperty(0)
 
     val insertUser = """INSERT INTO users SET nick_name = ?, phone = ?, email = ?, auth_token = ?,
                         password=?, create_date=NOW(), hidden=FALSE, update_date=NOW(), activated=TRUE"""
 
-    val insertFriend = """INSERT INTO friends SET create_date=NOW(), hidden=FALSE, update_date=NOW(), name = ?,
-                        type= ?, from_user_id= ?, to_user_id= ? """
+    val insertFriend = """INSERT INTO friends SET create_date=NOW(), hidden=FALSE, update_date=NOW(), from_user_name = ?,
+                        from_user_id= ?, to_user_name= ?, to_user_id= ?,
+                        type= ? """
 
     val selectUserId = """SELECT id FROM users WHERE email= ? """
+
+    val insertEvent = """INSERT INTO events SET create_date=NOW(), update_date=NOW(), hidden=false, description=?, end_date=?,
+                        event_type='TASK', max_members=?, min_members=?, name=?, start_date=?,
+                        shared=0, status='RECRUITING', location_id=?, user_id=?"""
+
+    val insertLocation = """INSERT INTO locations SET create_date=NOW(), update_date=NOW(), hidden=FALSE, address=?,
+                            description=?, latitude=?, longitude=?, place=?, user_id=?"""
 
     fun initialize() {
         usersField.textProperty().bindBidirectional(usersCount, numberToStringConverter)
         jdbcField.textProperty().bindBidirectional(jdbcUrl)
         usersPassField.textProperty().bindBidirectional(usersPass)
         friendshipsField.textProperty().bindBidirectional(friendshipsCount, numberToStringConverter)
+        eventsCountField.textProperty().bindBidirectional(eventsCount, numberToStringConverter)
+        eventsOwnerField.textProperty().bindBidirectional(eventsOwnerId, numberToStringConverter)
 
         progressBar.managedProperty().bind(progressBar.visibleProperty()) // visibility behaviour "gone"
         progressBar.visibleProperty().bind(contentPane.disableProperty())
@@ -94,24 +109,23 @@ class MainController {
 
                 var friendships = friendshipsCount.get()
                 println("Generate $friendships friendships")
-                val outRequests = HashSet<Pair<Int, Int>>()
                 val friends = HashSet<Pair<Int, Int>>()
                 var i = 0
 
                 while(friendships > 0 && i < container.count()) {
-                    val index = container[i++];
+                    val index = container[i++]
                     val friendOne = users[index]
                     var j = 0
-                    val maxFriends = friendships / 5 + random.nextInt(friendships / 3)
+                    //val maxFriends = friendships / 5 + random.nextInt(friendships / 3)
+                    val maxFriends = friendships
                     val perOneFriends: Int = if (maxFriends > friendships) friendships else maxFriends
                     println("Create $perOneFriends friends for ${friendOne.name}")
 
                     loop@ while (j < perOneFriends && j < container.count()) {
                         val otherIndex = getOtherId(index)
                         val friendSecond = users[otherIndex]
-                        if (outRequests.contains(Pair(index, otherIndex))
-                                || outRequests.contains(Pair(otherIndex, index))
-                                || friends.contains(Pair(index, otherIndex))) {
+                        if (friends.contains(Pair(index, otherIndex))
+                                || friends.contains(Pair(otherIndex, index))) {
                             println("Skip $otherIndex")
                             j++
                             continue@loop
@@ -123,24 +137,32 @@ class MainController {
 
                         when (random.nextInt(2)) {
                             1 -> { // Out req
-                                saveFriend(stmtFriends, friendOne, "REQUEST", fromUserId, toUserId)
-
-                                outRequests.add(Pair(index, otherIndex))
+                                saveFriend(stmtFriends, friendOne, friendSecond, "REQUEST", fromUserId, toUserId)
+                                friends.add(Pair(index, otherIndex))
                                 friendships--
                                 j++
+
                             } else -> { // Make friends
 
-                                saveFriend(stmtFriends, friendOne, "FRIEND", fromUserId, toUserId)
+                                saveFriend(stmtFriends, friendOne, friendSecond, "FRIEND", fromUserId, toUserId)
                                 friends.add(Pair(index, otherIndex))
-
-                                saveFriend(stmtFriends, friendSecond, "FRIEND", toUserId, fromUserId)
-                                friends.add(Pair(otherIndex, index))
-
-                                friendships -= 2
-                                j += 2
+                                friendships--
+                                j++
                             }
                         }
                         println("Generated friends for user ${friendOne.name}")
+                    }
+                }
+
+                if (eventsCount.get() > 0) {
+                    println("\n\nStart generate ${eventsCount.get()} events for ${eventsOwnerId.get()} user")
+
+                    val stmtEvents = connection.prepareStatement(insertEvent)
+                    val stmtLocation = connection.prepareStatement(insertLocation)
+
+                    val locationId = generateLocation(stmtLocation, eventsOwnerId.get())
+                    for (k in 1..eventsCount.get().toInt()) {
+
                     }
                 }
 
@@ -162,11 +184,21 @@ class MainController {
         }
     }
 
-    fun saveFriend(stmt: PreparedStatement, user: User, type: String, fromId: Int, toId: Int) {
-        stmt.setString(1, user.name)
-        stmt.setString(2, type)
-        stmt.setInt(3, fromId)
+    private fun generateLocation(stmtLocation: PreparedStatement, userId: Int): Int {
+        stmtLocation.setString(1, selectAddress())
+        stmtLocation
+    }
+
+    private fun selectAddress(): String {
+        return "Default address"
+    }
+
+    fun saveFriend(stmt: PreparedStatement, userOne: User, userSecond: User, type: String, fromId: Int, toId: Int) {
+        stmt.setString(1, userOne.name)
+        stmt.setInt(2, fromId)
+        stmt.setString(3, userSecond.name)
         stmt.setInt(4, toId)
+        stmt.setString(5, type)
         stmt.execute()
     }
 
@@ -184,7 +216,7 @@ class MainController {
         var tmp = 0
         var i = 0
         do {
-            if (i++ > max * max) throw IllegalArgumentException("Can't generate random number")
+            if (i++ > max * max * max) throw IllegalArgumentException("Can't generate random number")
             tmp = random.nextInt(max)
         } while (container.contains(tmp))
         container.add(tmp)
