@@ -13,7 +13,10 @@ import javafx.scene.control.ButtonType
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TextField
 import javafx.util.StringConverter
+import model.Location
+import model.LocationDetails
 import model.User
+import rest.Google
 import java.io.InputStreamReader
 import java.sql.DriverManager
 import java.sql.PreparedStatement
@@ -61,6 +64,8 @@ class MainController {
 
     val insertLocation = """INSERT INTO locations SET create_date=NOW(), update_date=NOW(), hidden=FALSE, address=?,
                             description=?, latitude=?, longitude=?, place=?, user_id=?"""
+
+    val google = Google(49.0241f, 33.3519f, 50000)
 
     fun initialize() {
         usersField.textProperty().bindBidirectional(usersCount, numberToStringConverter)
@@ -160,8 +165,8 @@ class MainController {
                     val stmtEvents = connection.prepareStatement(insertEvent)
                     val stmtLocation = connection.prepareStatement(insertLocation)
 
-                    val locationId = generateLocation(stmtLocation, eventsOwnerId.get())
                     for (k in 1..eventsCount.get().toInt()) {
+                        val locationId = generateLocation(stmtLocation, eventsOwnerId.get())
 
                     }
                 }
@@ -185,12 +190,15 @@ class MainController {
     }
 
     private fun generateLocation(stmtLocation: PreparedStatement, userId: Int): Int {
-        stmtLocation.setString(1, selectAddress())
-        stmtLocation
-    }
-
-    private fun selectAddress(): String {
-        return "Default address"
+        with(google.getRandomLocationDeatils() ?: LocationDetails.default) {
+            stmtLocation.setString(1, vicinity)
+            stmtLocation.setString(2, address)
+            stmtLocation.setFloat(3, geometry.location.lat)
+            stmtLocation.setFloat(4, geometry.location.lng)
+            stmtLocation.setString(5, name)
+            stmtLocation.setInt(6, userId)
+        }
+        return 0
     }
 
     fun saveFriend(stmt: PreparedStatement, userOne: User, userSecond: User, type: String, fromId: Int, toId: Int) {

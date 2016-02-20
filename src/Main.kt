@@ -18,6 +18,9 @@ class Main : Application() {
     }
 
     companion object {
+
+        val API_KEY = "AIzaSyBwVAlyxzsx41cD9ck0TcoJtiOwgby4nXE"
+
         @JvmStatic
         fun main(args: Array<String>) {
             launch(Main::class.java)

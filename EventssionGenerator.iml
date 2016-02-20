@@ -23,5 +23,8 @@
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.5" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.0.0-rc-1036" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-runtime:1.0.0-rc-1036" level="project" />
+    <orderEntry type="library" name="com.squareup.retrofit2:retrofit:2.0.0-beta4" level="project" />
+    <orderEntry type="library" name="com.google.code.gson:gson:2.6.1" level="project" />
+    <orderEntry type="library" name="com.squareup.retrofit2:converter-gson:2.0.0-beta4" level="project" />
   </component>
 </module>
