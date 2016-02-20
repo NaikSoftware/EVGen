@@ -20,6 +20,7 @@ import rest.Google
 import java.io.InputStreamReader
 import java.sql.DriverManager
 import java.sql.PreparedStatement
+import java.sql.Statement
 import java.util.*
 import java.util.concurrent.Executors
 
@@ -42,7 +43,7 @@ class MainController {
     @FXML lateinit var eventsCountField: TextField
     @FXML lateinit var eventsOwnerField: TextField
 
-    val jdbcUrl: StringProperty = SimpleStringProperty("mysql://localhost:3306/database?user=root&password=1234")
+    val jdbcUrl: StringProperty = SimpleStringProperty("mysql://localhost:3306/database?user=root&password=1234&useUnicode=true&characterEncoding=utf-8")
     var usersCount: IntegerProperty = SimpleIntegerProperty(1)
     var usersPass: StringProperty = SimpleStringProperty()
     var friendshipsCount: IntegerProperty = SimpleIntegerProperty(0)
@@ -159,11 +160,12 @@ class MainController {
                     }
                 }
 
+                container.clear()
                 if (eventsCount.get() > 0) {
                     println("\n\nStart generate ${eventsCount.get()} events for ${eventsOwnerId.get()} user")
 
                     val stmtEvents = connection.prepareStatement(insertEvent)
-                    val stmtLocation = connection.prepareStatement(insertLocation)
+                    val stmtLocation = connection.prepareStatement(insertLocation, Statement.RETURN_GENERATED_KEYS)
 
                     for (k in 1..eventsCount.get().toInt()) {
                         val locationId = generateLocation(stmtLocation, eventsOwnerId.get())
@@ -190,7 +192,10 @@ class MainController {
     }
 
     private fun generateLocation(stmtLocation: PreparedStatement, userId: Int): Int {
-        with(google.getRandomLocationDeatils() ?: LocationDetails.default) {
+        if (container.size > 0 && random.nextInt(3) == 0) { // return from cache
+            return container[random.nextInt(container.size)]
+        }
+        with(google.getRandomLocationDeatils() ?: LocationDetails.default) { // else gen new
             stmtLocation.setString(1, vicinity)
             stmtLocation.setString(2, address)
             stmtLocation.setFloat(3, geometry.location.lat)
@@ -198,7 +203,14 @@ class MainController {
             stmtLocation.setString(5, name)
             stmtLocation.setInt(6, userId)
         }
-        return 0
+        with(stmtLocation) {
+            execute()
+            val result = generatedKeys
+            result.next()
+            val id = result.getInt(1)
+            container.add(id)
+            return id
+        }
     }
 
     fun saveFriend(stmt: PreparedStatement, userOne: User, userSecond: User, type: String, fromId: Int, toId: Int) {
