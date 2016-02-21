@@ -14,6 +14,7 @@ import javafx.scene.control.ProgressBar
 import javafx.scene.control.TextField
 import javafx.util.StringConverter
 import model.*
+import org.joda.time.LocalDate
 import rest.Google
 import rest.Vkontakte
 import java.io.InputStreamReader
@@ -45,12 +46,12 @@ class MainController {
     @FXML lateinit var eventsSearchField: TextField
 
     val jdbcUrl: StringProperty = SimpleStringProperty("mysql://localhost:3306/database?user=root&password=1234&useUnicode=true&characterEncoding=utf-8")
-    var usersCount: IntegerProperty = SimpleIntegerProperty(1)
+    var usersCount: IntegerProperty = SimpleIntegerProperty(0)
     var usersPass: StringProperty = SimpleStringProperty()
     var friendshipsCount: IntegerProperty = SimpleIntegerProperty(0)
     var eventsCount: IntegerProperty = SimpleIntegerProperty(0)
     var eventsOwnerId: IntegerProperty = SimpleIntegerProperty(0)
-    var eventsSearchText: StringProperty = SimpleStringProperty("Sport")
+    var eventsSearchText: StringProperty = SimpleStringProperty("Music")
 
     val insertUser = """INSERT INTO users SET nick_name = ?, phone = ?, email = ?, auth_token = ?,
                         password=?, create_date=NOW(), hidden=FALSE, update_date=NOW(), activated=TRUE"""
@@ -185,6 +186,7 @@ class MainController {
                         val locationId = generateLocation(stmtLocation, userId)
                         val eventId = saveEvent(events[k], locationId, userId, stmtEvents)
                         saveMember(eventId, userId, stmtMember)
+                        println("Saved event ${events[k]}")
                     }
                     locationsCreated = container.size
                 }
@@ -212,12 +214,13 @@ class MainController {
     fun saveEvent(group: GroupDetails, locationId: Int, userId: Int, stmtEvents: PreparedStatement) : Int {
         with(stmtEvents) {
             clearParameters()
-            setString(1, group.description)
-            setDate(2, java.sql.Date(group.finish_date))
+            val start = generateStartDate()
+            setString(1, clear4byteChars(group.description))
+            setDate(2, generateEndDate(start))
             setInt(3, 1)
             setInt(4, 1)
-            setString(5, group.name)
-            setDate(6, java.sql.Date(group.start_date))
+            setString(5, clear4byteChars(group.name))
+            setDate(6, start)
             setInt(7, locationId)
             setInt(8, userId)
         }
@@ -295,6 +298,18 @@ class MainController {
             otherId = container[random.nextInt(container.count())]
         } while(otherId == id)
         return otherId
+    }
+
+    fun generateStartDate() : Date {
+        return Date(LocalDate().plusDays(random.nextInt(30) - random.nextInt(30)).toDate().time)
+    }
+
+    fun generateEndDate(startDate: Date) : Date {
+        return Date(LocalDate(startDate.time).plusDays(random.nextInt(7)).toDate().time)
+    }
+
+    fun clear4byteChars(text: String?) : String? {
+        return text?.filter { c -> Character.isSurrogate(c).not() }
     }
 
     val numberToStringConverter =  object : StringConverter<Number>() {

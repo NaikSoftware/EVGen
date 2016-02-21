@@ -1,7 +1,9 @@
 package rest
 
 import model.GroupDetails
+import org.joda.time.LocalDate
 import rest.repository.VkGroups
+import java.sql.Date
 import java.util.*
 
 /**
@@ -52,5 +54,9 @@ class Vkontakte {
             list.add(GroupDetails.default)
         }
         return list
+    }
+
+    fun convertDate(unixtime: Long) : Date {
+        return Date(LocalDate(unixtime).plusYears(LocalDate().year - 1970).toDate().time)
     }
 }
