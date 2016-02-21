@@ -17,6 +17,7 @@ import model.*
 import rest.Google
 import rest.Vkontakte
 import java.io.InputStreamReader
+import java.sql.Date
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.Statement
@@ -66,6 +67,9 @@ class MainController {
 
     val insertLocation = """INSERT INTO locations SET create_date=NOW(), update_date=NOW(), hidden=FALSE, address=?,
                             description=?, latitude=?, longitude=?, place=?, user_id=?"""
+
+    val insertMember = """INSERT INTO members SET event_id=?, user_id=?, status='UNANSWERED', showed=FALSE,
+                            create_date=NOW(), update_date=NOW(), hidden=FALSE"""
 
     val google = Google(49.0241f, 33.3519f, 50000)
     val vkontakte = Vkontakte()
@@ -172,13 +176,15 @@ class MainController {
 
                     val stmtEvents = connection.prepareStatement(insertEvent, Statement.RETURN_GENERATED_KEYS)
                     val stmtLocation = connection.prepareStatement(insertLocation, Statement.RETURN_GENERATED_KEYS)
+                    val stmtMember = connection.prepareStatement(insertMember)
 
                     val events = vkontakte.findEvents(eventsSearchText.get(), eventsCount.get())
                     factEventsCount = events.size
 
                     for (k in 0..factEventsCount - 1) {
                         val locationId = generateLocation(stmtLocation, userId)
-                        saveEvent(events[k], locationId, userId)
+                        val eventId = saveEvent(events[k], locationId, userId, stmtEvents)
+                        saveMember(eventId, userId, stmtMember)
                     }
                     locationsCreated = container.size
                 }
@@ -203,8 +209,19 @@ class MainController {
         }
     }
 
-    fun saveEvent(group: GroupDetails, locationId: Int, userId: Int) {
-
+    fun saveEvent(group: GroupDetails, locationId: Int, userId: Int, stmtEvents: PreparedStatement) : Int {
+        with(stmtEvents) {
+            clearParameters()
+            setString(1, group.description)
+            setDate(2, java.sql.Date(group.finish_date))
+            setInt(3, 1)
+            setInt(4, 1)
+            setString(5, group.name)
+            setDate(6, java.sql.Date(group.start_date))
+            setInt(7, locationId)
+            setInt(8, userId)
+        }
+        return execAndGetId(stmtEvents)
     }
 
     fun generateLocation(stmtLocation: PreparedStatement, userId: Int): Int {
@@ -219,13 +236,16 @@ class MainController {
             stmtLocation.setString(5, name)
             stmtLocation.setInt(6, userId)
         }
-        with(stmtLocation) {
+        val id = execAndGetId(stmtLocation)
+        container.add(id)
+        return id
+    }
+
+    fun saveMember(eventId: Int, userId: Int, stmtMember: PreparedStatement) {
+        with(stmtMember) {
+            setInt(1, eventId)
+            setInt(2, userId)
             execute()
-            val result = generatedKeys
-            result.next()
-            val id = result.getInt(1)
-            container.add(id)
-            return id
         }
     }
 
@@ -246,6 +266,14 @@ class MainController {
         } else {
             throw IllegalAccessError("User with email ${user.email} not found in DB")
         }
+    }
+
+    fun execAndGetId(stmt: PreparedStatement) : Int {
+        stmt.execute()
+        val result = stmt.generatedKeys
+        result.next()
+        val id = result.getInt(1)
+        return id
     }
 
     fun rnd(max: Int) : Int {
