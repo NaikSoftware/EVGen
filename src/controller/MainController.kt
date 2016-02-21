@@ -13,10 +13,7 @@ import javafx.scene.control.ButtonType
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TextField
 import javafx.util.StringConverter
-import model.Group
-import model.Location
-import model.LocationDetails
-import model.User
+import model.*
 import rest.Google
 import rest.Vkontakte
 import java.io.InputStreamReader
@@ -179,7 +176,7 @@ class MainController {
                     val events = vkontakte.findEvents(eventsSearchText.get(), eventsCount.get())
                     factEventsCount = events.size
 
-                    for (k in 1..factEventsCount) {
+                    for (k in 0..factEventsCount - 1) {
                         val locationId = generateLocation(stmtLocation, userId)
                         saveEvent(events[k], locationId, userId)
                     }
@@ -206,7 +203,7 @@ class MainController {
         }
     }
 
-    fun saveEvent(group: Group, locationId: Int, userId: Int) {
+    fun saveEvent(group: GroupDetails, locationId: Int, userId: Int) {
 
     }
 
