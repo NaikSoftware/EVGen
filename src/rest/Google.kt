@@ -19,7 +19,7 @@ class Google(val myLatitude: Float, val myLongitude: Float, val radius: Int) {
         val location = getRandomLocation() ?: return null
 
         val response = googleClient.mapsRepository.getPlaceDetails(
-                location.placeId, Main.API_KEY).execute()
+                location.placeId, Main.GOOGLE_API_KEY).execute()
 
         if (response.isSuccess) {
             val googleResponse = response.body()
@@ -38,7 +38,7 @@ class Google(val myLatitude: Float, val myLongitude: Float, val radius: Int) {
     fun getRandomLocation() : Location? {
         val response = googleClient.mapsRepository.getPlaceNear(
                 "%f,%f".format(Locale.US, myLatitude, myLongitude),
-                radius, locationTypes, "", Main.API_KEY).execute()
+                radius, locationTypes, "", Main.GOOGLE_API_KEY).execute()
 
         if (response.isSuccess) {
             val googleResponse = response.body()

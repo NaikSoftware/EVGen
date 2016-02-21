@@ -13,10 +13,12 @@ import javafx.scene.control.ButtonType
 import javafx.scene.control.ProgressBar
 import javafx.scene.control.TextField
 import javafx.util.StringConverter
+import model.Group
 import model.Location
 import model.LocationDetails
 import model.User
 import rest.Google
+import rest.Vkontakte
 import java.io.InputStreamReader
 import java.sql.DriverManager
 import java.sql.PreparedStatement
@@ -42,6 +44,7 @@ class MainController {
 
     @FXML lateinit var eventsCountField: TextField
     @FXML lateinit var eventsOwnerField: TextField
+    @FXML lateinit var eventsSearchField: TextField
 
     val jdbcUrl: StringProperty = SimpleStringProperty("mysql://localhost:3306/database?user=root&password=1234&useUnicode=true&characterEncoding=utf-8")
     var usersCount: IntegerProperty = SimpleIntegerProperty(1)
@@ -49,6 +52,7 @@ class MainController {
     var friendshipsCount: IntegerProperty = SimpleIntegerProperty(0)
     var eventsCount: IntegerProperty = SimpleIntegerProperty(0)
     var eventsOwnerId: IntegerProperty = SimpleIntegerProperty(0)
+    var eventsSearchText: StringProperty = SimpleStringProperty("Sport")
 
     val insertUser = """INSERT INTO users SET nick_name = ?, phone = ?, email = ?, auth_token = ?,
                         password=?, create_date=NOW(), hidden=FALSE, update_date=NOW(), activated=TRUE"""
@@ -67,6 +71,7 @@ class MainController {
                             description=?, latitude=?, longitude=?, place=?, user_id=?"""
 
     val google = Google(49.0241f, 33.3519f, 50000)
+    val vkontakte = Vkontakte()
 
     fun initialize() {
         usersField.textProperty().bindBidirectional(usersCount, numberToStringConverter)
@@ -75,6 +80,7 @@ class MainController {
         friendshipsField.textProperty().bindBidirectional(friendshipsCount, numberToStringConverter)
         eventsCountField.textProperty().bindBidirectional(eventsCount, numberToStringConverter)
         eventsOwnerField.textProperty().bindBidirectional(eventsOwnerId, numberToStringConverter)
+        eventsSearchField.textProperty().bindBidirectional(eventsSearchText)
 
         progressBar.managedProperty().bind(progressBar.visibleProperty()) // visibility behaviour "gone"
         progressBar.visibleProperty().bind(contentPane.disableProperty())
@@ -161,23 +167,32 @@ class MainController {
                 }
 
                 container.clear()
+                var factEventsCount = 0
+                var locationsCreated = 0
                 if (eventsCount.get() > 0) {
-                    println("\n\nStart generate ${eventsCount.get()} events for ${eventsOwnerId.get()} user")
+                    val userId = eventsOwnerId.get()
+                    println("\n\nStart generate ${eventsCount.get()} events for $userId user")
 
-                    val stmtEvents = connection.prepareStatement(insertEvent)
+                    val stmtEvents = connection.prepareStatement(insertEvent, Statement.RETURN_GENERATED_KEYS)
                     val stmtLocation = connection.prepareStatement(insertLocation, Statement.RETURN_GENERATED_KEYS)
 
-                    for (k in 1..eventsCount.get().toInt()) {
-                        val locationId = generateLocation(stmtLocation, eventsOwnerId.get())
+                    val events = vkontakte.findEvents(eventsSearchText.get(), eventsCount.get())
+                    factEventsCount = events.size
 
+                    for (k in 1..factEventsCount) {
+                        val locationId = generateLocation(stmtLocation, userId)
+                        saveEvent(events[k], locationId, userId)
                     }
+                    locationsCreated = container.size
                 }
 
                 Platform.runLater {
                     Alert(Alert.AlertType.INFORMATION,
                             """Finished:
                             ${usersCount.get()} users created;
-                            ${friendshipsCount.get() - friendships} friendships created.""",
+                            ${friendshipsCount.get() - friendships} friendships created;
+                            $factEventsCount events created for user ${eventsOwnerId.get()};
+                            $locationsCreated locations created.""",
                             ButtonType.OK).show()
                 }
 
@@ -191,7 +206,11 @@ class MainController {
         }
     }
 
-    private fun generateLocation(stmtLocation: PreparedStatement, userId: Int): Int {
+    fun saveEvent(group: Group, locationId: Int, userId: Int) {
+
+    }
+
+    fun generateLocation(stmtLocation: PreparedStatement, userId: Int): Int {
         if (container.size > 0 && random.nextInt(3) == 0) { // return from cache
             return container[random.nextInt(container.size)]
         }

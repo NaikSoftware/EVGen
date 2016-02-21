@@ -20,6 +20,7 @@
                 <RowConstraints maxHeight="48.0" minHeight="48.0" prefHeight="48.0" vgrow="SOMETIMES" />
             <RowConstraints maxHeight="48.0" minHeight="48.0" prefHeight="48.0" vgrow="SOMETIMES" />
             <RowConstraints maxHeight="48.0" minHeight="48.0" prefHeight="48.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="48.0" minHeight="48.0" prefHeight="48.0" vgrow="SOMETIMES" />
                 <RowConstraints maxHeight="1.7976931348623157E308" prefHeight="200.0" valignment="TOP" vgrow="ALWAYS" />
                 <RowConstraints maxHeight="50.0" minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES" />
             </rowConstraints>
@@ -30,12 +31,12 @@
                         <Insets left="10.0" right="10.0" />
                     </GridPane.margin>
                 </TextField>
-                <Button mnemonicParsing="false" onAction="#onGenerate" text="Generate" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                <Button mnemonicParsing="false" onAction="#onGenerate" text="Generate" GridPane.columnIndex="1" GridPane.rowIndex="8">
                     <GridPane.margin>
                         <Insets right="10.0" />
                     </GridPane.margin>
                 </Button>
-                <Label text="NaikSoftware (c) 2016" GridPane.rowIndex="7">
+                <Label text="NaikSoftware (c) 2016" GridPane.rowIndex="8">
                     <GridPane.margin>
                         <Insets right="10.0" />
                     </GridPane.margin>
@@ -86,6 +87,16 @@
                </GridPane.margin>
             </TextField>
             <TextField fx:id="eventsOwnerField" GridPane.columnIndex="1" GridPane.rowIndex="5">
+               <GridPane.margin>
+                  <Insets left="10.0" right="10.0" />
+               </GridPane.margin>
+            </TextField>
+            <Label text="Events search text:" GridPane.rowIndex="6">
+               <GridPane.margin>
+                  <Insets right="10.0" />
+               </GridPane.margin>
+            </Label>
+            <TextField fx:id="eventsSearchField" GridPane.columnIndex="1" GridPane.rowIndex="6">
                <GridPane.margin>
                   <Insets left="10.0" right="10.0" />
                </GridPane.margin>
