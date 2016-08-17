@@ -21,7 +21,7 @@ class Google(val myLatitude: Float, val myLongitude: Float, val radius: Int) {
         val response = googleClient.mapsRepository.getPlaceDetails(
                 location.placeId, Main.GOOGLE_API_KEY).execute()
 
-        if (response.isSuccess) {
+        if (response.isSuccessful) {
             val googleResponse = response.body()
             if (googleResponse.status.compareTo("OK", true) == 0) {
                 return googleResponse.result
@@ -40,7 +40,7 @@ class Google(val myLatitude: Float, val myLongitude: Float, val radius: Int) {
                 "%f,%f".format(Locale.US, myLatitude, myLongitude),
                 radius, locationTypes, "", Main.GOOGLE_API_KEY).execute()
 
-        if (response.isSuccess) {
+        if (response.isSuccessful) {
             val googleResponse = response.body()
             if (googleResponse.status.compareTo("OK", true) == 0) {
                 val results = googleResponse.results

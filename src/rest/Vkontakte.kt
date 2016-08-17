@@ -17,7 +17,7 @@ class Vkontakte {
     fun findEvents(query: String, count: Int) : List<GroupDetails> {
         val response = vkontakteClient.groupsRepository.search(query, "event", count, apiVersion, Main.VK_ACCESS_TOKEN)
                 .execute()
-        if (response.isSuccess) {
+        if (response.isSuccessful) {
             val vkResponse = response.body()
             if (vkResponse.error == null) {
                 val groups = vkResponse.response.items
@@ -35,7 +35,7 @@ class Vkontakte {
     private fun getByIds(ids: String): List<GroupDetails> {
         val response = vkontakteClient.groupsRepository.getById(ids, VkGroups.extraFields, apiVersion, Main.VK_ACCESS_TOKEN)
                 .execute()
-        if (response.isSuccess) {
+        if (response.isSuccessful) {
             val vkResponse = response.body()
             if (vkResponse.error == null) {
                 return vkResponse.response
