@@ -93,6 +93,7 @@ class MainController {
     fun onGenerate() {
         contentPane.isDisable = true
         executor.submit {
+
             println("Connect to ${jdbcUrl.get()}")
             try {
                 val connection = DriverManager.getConnection("jdbc:${jdbcUrl.get()}")
